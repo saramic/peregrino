@@ -1,27 +1,35 @@
 [vars]
 ruby_version = "4.0.5"
 rails_version = "8.1.3"
+node_version = "24"
+pnpm_version = "10"
 
 [tools]
+node = "{{vars.node_version}}"
+pnpm = "{{vars.pnpm_version}}"
 ruby = "{{vars.ruby_version}}"
 
 [tasks.install]
 description = "install prerequisites"
 run = [
   "brew bundle",
+  "bundle install",
+  "pnpm install",
 ]
 
 [tasks."check-tools"]
 description = "check installed tools"
+depends = ["install"]
 run = [
   "ruby -v | grep -q '{{vars.ruby_version}}' || { echo 'ERROR: Expected Ruby {{vars.ruby_version}}'; exit 1; }",
   "rails -v | grep -q '{{vars.rails_version}}' || { echo 'ERROR: Expected Rails {{vars.rails_version}}'; exit 1; }",
+  "pnpm --version | grep -q '{{vars.pnpm_version}}' || { echo 'ERROR: Expected pnpm {{vars.pnpm_version}}'; exit 1; }",
+  "node --version | grep -q 'v{{vars.node_version}}' || { echo 'ERROR: Expected Node.js {{vars.node_version}}'; exit 1; }",
 ]
-
 
 [tasks."setup"]
 description = "setup"
-depends = ["install", "check-tools"]
+depends = ["check-tools"]
 
 [tasks.check]
 description = "check the code"

@@ -60,3 +60,29 @@ Rails 8 — no extra flags needed. `--skip-test` lets you drop in RSpec cleanly.
 `--skip-jbuilder` because we serve HTML not JSON to mobile (Hotwire Native).
 `--skip-action-mailbox` and `--skip-action-text` are almost never used on
 a new project; add them back if needed.
+
+### 3. Switch to PNPM
+
+Install and check versions of `pnpm` and `node`
+
+```sh
+mise use pnpm@10
+mise use node@24
+```
+
+update rails to use `pnpm`
+
+```sh
+# Remove any yarn.lock or package-lock.json Rails may have created
+rm -f yarn.lock package-lock.json
+
+# Fix Procfile.dev — Rails generates: js: yarn build --watch
+# Change to pnpm:
+sed -i '' 's/yarn build/pnpm build/g' Procfile.dev
+
+# Install with pnpm (generates pnpm-lock.yaml)
+pnpm install
+
+# Verify the bridge package installs cleanly
+pnpm add @hotwired/hotwire-native-bridge
+```
