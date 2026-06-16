@@ -86,3 +86,18 @@ pnpm install
 # Verify the bridge package installs cleanly
 pnpm add @hotwired/hotwire-native-bridge
 ```
+
+### 4. RSpec for testing
+
+base testing setup
+
+```sh
+bundle add rspec-rails --group "development, test"
+bin/rails generate rspec:install
+bundle binstub rspec-core
+
+bin/rspec
+
+# run in check
+make check
+```

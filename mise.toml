@@ -35,5 +35,5 @@ depends = ["check-tools"]
 description = "check the code"
 depends = ["check-tools"]
 run = [
-  "echo code and other checks go here",
+  "bin/rspec",
 ]
