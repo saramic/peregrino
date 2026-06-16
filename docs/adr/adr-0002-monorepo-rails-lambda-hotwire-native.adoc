@@ -1,0 +1,156 @@
+---
+:authors: Michael Milewski
+:state: ⚠️ PROPOSED
+:Labels: ADR, architecture, mobile, deployment, infrastructure
+---
+
+= ADR 0002 — Monorepo structure for Rails app, AWS Lambdas, and Hotwire Native mobile clients
+
+== Context
+
+We are building a product that combines a server-rendered Rails web application,
+asynchronous background processing, event-driven AWS Lambda functions, and native
+mobile apps for iOS and Android. Each of these concerns has historically been treated
+as a candidate for a separate repository, but that introduces coordination overhead that
+is disproportionate to our team size.
+
+The forces in play are:
+
+- The mobile apps (iOS and Android) are thin Hotwire Native shells: they contain almost
+  no business logic, only native Bridge Components for capabilities that cannot be
+  delivered by the web layer (continuous background geolocation, background audio
+  playback with lock-screen controls). The vast majority of every screen is served as
+  HTML from Rails. Separating the native projects into their own repos would create
+  synchronisation friction every time a bridge contract or path configuration changes
+  in Rails.
+
+- AWS Lambda functions handle compute-intensive or event-driven work (audio processing,
+  geolocation-triggered notifications) that is invoked asynchronously via SQS/SNS.
+  They are stateless, independently deployable, and written in a different runtime
+  (Node.js). They are not microservices and share no code with the Rails app, but they
+  are tightly coupled to the product's domain model and event schema.
+
+- Our team is small. Maintaining separate repositories means separate CI pipelines,
+  separate secret management, separate onboarding, and the constant risk of the native
+  or Lambda projects drifting out of sync with Rails contracts. A monorepo does not
+  require a monorepo build tool (Nx, Turborepo, Bazel) to be worthwhile; for our scale,
+  a well-structured single repository with independent CI jobs per subdirectory is
+  sufficient.
+
+- Rails 8 ships Kamal 2 as its default deployment tool. Kamal deploys Docker containers
+  directly to EC2 via SSH, with zero-downtime rolling updates and Kamal Proxy replacing
+  Traefik. This model is simpler and cheaper for steady-state Rails workloads than AWS
+  ECS Fargate, which adds task-definition complexity and roughly 30% cost overhead for
+  continuously running services. Lambda functions are deployed independently via
+  Serverless Framework or AWS CDK from within the same repository.
+
+- Background jobs are handled by Solid Queue (Rails 8 default), which runs in the same
+  database as the application with no Redis dependency. Sidekiq remains an option if
+  throughput demands it, but it is not the default. Heavy async work that would
+  otherwise strain Sidekiq is offloaded to Lambda.
+
+- The domain will grow. We anticipate introducing Packwerk boundary enforcement once
+  we can identify two or three stable bounded contexts with distinct ownership. Adding
+  `packs/` to an existing Rails directory is a low-friction migration; doing so across
+  repositories would require extracting an API boundary instead.
+
+== Decision
+
+We will maintain a single Git repository containing four top-level concerns:
+
+1. The Rails application at the repo root (standard Rails conventions: `app/`, `config/`,
+   `db/`, `Gemfile`, `Dockerfile`, `config/deploy.yml` for Kamal 2).
+
+2. A `lambdas/` directory containing one subdirectory per Lambda function. Each function
+   is fully self-contained (its own `package.json`, handler, and tests). A `lambdas/shared/`
+   subdirectory holds common AWS SDK configuration and domain-level event type definitions.
+   Lambda deployment is managed by a `lambdas/serverless.yml` or a CDK stack, and is
+   triggered by a separate CI job that only runs when files under `lambdas/` change.
+
+3. A `mobile/` directory containing `mobile/ios/` (an Xcode project using the Hotwire Native
+   iOS Swift package) and `mobile/android/` (an Android Studio project using the Hotwire
+   Native Android Kotlin library). Each native project contains only: the application shell,
+   Bridge Component implementations for audio playback and background geolocation, and the
+   path configuration that maps URLs to native vs. web treatment. The bridge contract (the
+   Stimulus controller names and message payloads) is documented in `app/javascript/bridge/`
+   on the Rails side, so both ends of every bridge live in the same commit.
+
+4. An `infra/` directory for IaC (AWS CDK or Terraform) covering shared infrastructure:
+   RDS (PostgreSQL), EC2 target hosts for Kamal, S3 buckets for audio assets, and
+   CloudFront. This is optional in early stages; it may begin as inline Kamal accessory
+   configuration and graduate to CDK when the infrastructure surface grows.
+
+We will deploy the Rails application (web process and Solid Queue worker process) via
+Kamal 2 to EC2, not Fargate. The GitHub Actions workflow at `.github/workflows/deploy.yml`
+will use path filters to run independent jobs: `deploy-rails` when files outside
+`lambdas/` and `mobile/` change, `deploy-lambdas` when files under `lambdas/` change,
+and `build-mobile` (triggering TestFlight / internal Play Store tracks) when files under
+`mobile/` or `config/hotwire_native/` change.
+
+We will not add Packwerk at project inception. When two or more engineers find themselves
+repeatedly navigating unrelated domain objects to understand a change, and when we can
+name at least two stable bounded contexts (candidate: `accounts`, `content`), we will
+introduce a `packs/` directory and enable `enforce_privacy: true`. The decision to add
+Packwerk will itself be recorded in a subsequent ADR.
+
+We will maintain a `docker-compose.yml` at the repo root for local development, bringing
+up the Rails web server, Solid Queue worker, PostgreSQL, and LocalStack (for local
+SQS/S3/Lambda emulation). A `Makefile` or `justfile` at the root will provide
+`make setup`, `make test`, `make deploy-lambdas`, and `make open-ios` targets so
+developers working on any part of the system have a single, documented entry point.
+
+== Consequences
+
+Having the native bridge contracts and the Stimulus bridge components in the same
+repository and the same commit means a breaking change to a bridge interface will be
+visible as a single diff, reviewable in a single pull request, and deployable atomically.
+This eliminates the most common source of native app breakage in hybrid architectures.
+
+Lambda function event schemas are co-located with the Rails code that produces and
+consumes those events. When the schema changes, the engineer sees both sides. There is
+no API versioning burden because SQS message consumers and producers are in the same
+codebase.
+
+Kamal 2 on EC2 is the simplest deployment path for Rails 8. It reduces the
+infrastructure surface (no ECS task definitions, no ECR lifecycle policies, no Fargate
+pricing per vCPU-second) and keeps deployment configuration readable in `config/deploy.yml`.
+The tradeoff is that auto-scaling requires more manual configuration than Fargate; this
+is acceptable until traffic patterns justify the operational investment.
+
+Solid Queue removes the Redis dependency for background jobs. This simplifies both
+local development (one fewer service in `docker-compose.yml`) and production
+infrastructure. The tradeoff is that Solid Queue shares the primary database, which
+increases write volume. If job throughput grows to the point where this is measurable,
+we will migrate to Sidekiq with a dedicated Redis instance and record that decision
+in a subsequent ADR.
+
+The monorepo will grow in surface area as `packs/`, more Lambdas, and the native
+projects mature. Without a build tool enforcing dependency caching, CI times will
+increase. We accept this until CI wall time exceeds roughly 10 minutes, at which
+point we will evaluate Turborepo or Nx for the non-Rails subdirectories. The Rails
+test suite will always run in its own job and is unaffected.
+
+Engineers working on the iOS or Android projects must have Xcode or Android Studio
+installed. This is an onboarding cost that would exist regardless of whether the
+native projects were in a separate repository. The benefit is that `git log` shows
+the full history of a feature across web and native in one place.
+
+== Decision Log
+
+**Tue 16 June 2026 — ADR review meeting**
+
+- present: @saramic Michael Milewski, _{add attendees}_
+- Options considered:
+  - *Three separate repositories* (Rails, Lambdas, Mobile): rejected due to
+    synchronisation overhead for bridge contracts and event schemas on a small team.
+  - *Full monorepo with Turborepo or Nx*: deferred. Adds tooling complexity before
+    we understand which build targets are slow. Revisit when CI exceeds 10 minutes.
+  - *Fargate instead of Kamal/EC2*: rejected for steady-state Rails. Fargate remains
+    the preferred option if we introduce burst-scale Lambda-like workers in future.
+  - *Sidekiq from day one*: deferred in favour of Solid Queue. Solid Queue is the
+    Rails 8 default and eliminates Redis as a dependency. Revisit if job throughput
+    becomes a bottleneck.
+  - *Packwerk from day one*: deferred. Premature boundary enforcement adds friction
+    before domain shapes are stable. A follow-up ADR will record the decision when
+    contexts are clear.
+- _{add discussion notes, concerns raised, and any warnings for future selves}_
