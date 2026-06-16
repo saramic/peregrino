@@ -33,7 +33,6 @@ depends = ["check-tools"]
 
 [tasks.check]
 description = "check the code"
-depends = ["check-tools"]
 run = [
   "bin/rspec",
 ]
