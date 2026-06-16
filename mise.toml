@@ -12,7 +12,7 @@ ruby = "{{vars.ruby_version}}"
 [tasks.install]
 description = "install prerequisites"
 run = [
-  "brew bundle",
+  "[ -n \"$CI\" ] || brew bundle",
   "bundle install",
   "pnpm install",
 ]
@@ -33,6 +33,7 @@ depends = ["check-tools"]
 
 [tasks.check]
 description = "check the code"
+depends = ["check-tools"]
 run = [
   "bundle exec rubocop",
   "bin/rspec",
