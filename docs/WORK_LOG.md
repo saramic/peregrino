@@ -111,3 +111,35 @@ bundle exec rubocop
 # now part of
 make check
 ```
+
+### 6. ESLint + Prettier
+
+Add linting for the JavaScript side — bridge components, Lambda functions, and
+any future TypeScript. A shared config at the root covers all three.
+
+```bash
+# Install at repo root
+pnpm add -D eslint @eslint/js eslint-plugin-import prettier \
+  eslint-config-prettier eslint-plugin-prettier
+```
+
+Create eslint.config.js at repo root (ESLint flat config format, the default since ESLint 9):
+
+Create `.prettierrc` at repo root:
+
+```json
+{
+  "semi": false,          # no longer needed as ASI (Automatic Semicolon Insertion fixes it)
+  "singleQuote": true,    # becuase more Rails like but not like JSON
+  "trailingComma": "es5", # because all will put into functions as well
+  "printWidth": 100       # because 80 is too tight
+}
+```
+
+talked AI down and just went for `.prettierrc` as below
+
+```json
+{}
+```
+
+added `pnpm lint` and `pnpm format` scrits

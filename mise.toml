@@ -12,7 +12,6 @@ ruby = "{{vars.ruby_version}}"
 [tasks.install]
 description = "install prerequisites"
 run = [
-  "[ -n \"$CI\" ] || brew bundle",
   "bundle install",
   "pnpm install",
 ]
@@ -30,6 +29,9 @@ run = [
 [tasks."setup"]
 description = "setup"
 depends = ["check-tools"]
+run = [
+  "[ -n \"$CI\" ] || brew bundle",
+]
 
 [tasks.check]
 description = "check the code"
@@ -37,4 +39,6 @@ depends = ["check-tools"]
 run = [
   "bundle exec rubocop",
   "bin/rspec",
+  "pnpm lint",
+  "pnpm format:check",
 ]
