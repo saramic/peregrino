@@ -101,3 +101,13 @@ bin/rspec
 # run in check
 make check
 ```
+
+### 5. Rubocop for ruby linting
+
+seems like this is somewhat setup already
+
+```sh
+bundle exec rubocop
+# now part of
+make check
+```

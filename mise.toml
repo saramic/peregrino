@@ -34,5 +34,6 @@ depends = ["check-tools"]
 [tasks.check]
 description = "check the code"
 run = [
+  "bundle exec rubocop",
   "bin/rspec",
 ]
