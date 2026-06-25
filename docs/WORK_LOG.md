@@ -1,5 +1,42 @@
 # WORK LOG
 
+# Fri 26 June 2026
+
+### 6 Local database setup
+
+Migrate to use UUIDs by default
+
+1. Migration to enable the extension:
+
+   ``` sh
+   bin/rails generate migration EnableUuid
+   ```
+
+   ```ruby
+   def change
+     enable_extension "pgcrypto"
+   end
+   ```
+2. Set UUID as default primary key in config/application.rb:
+
+   ```ruby
+   config.generators do |g|
+     g.orm :active_record, primary_key_type: :uuid
+   end
+   ```
+
+```bash
+bin/rails db:create db:migrate
+bin/rails db:seed
+```
+
+### 7 Confirm it runs
+
+```bash
+bin/dev   # starts Puma + Tailwind watcher via Procfile.dev
+# visit http://localhost:3000
+```
+
 # Tue 16 June 2026
 
 ## 1. Setup tools and build
@@ -150,7 +187,9 @@ UP TO HERE
 
 # WORK_LOG — Monorepo setup: Rails + Lambdas + Hotwire Native
 
-### 1.5 Fix Solid Stack + PostgreSQL (known Rails 8 gotcha)
+### X.X Fix Solid Stack + PostgreSQL (known Rails 8 gotcha)
+
+> **NOTE:** skipping as this seems to not be necessary, leaving for when we deploy
 
 Rails 8 generates `config/database.yml` expecting four separate databases for
 Solid Queue, Cache, Cable. With a single `DATABASE_URL` env var, the secondary
@@ -198,21 +237,6 @@ production:
 git add . && git commit -m "fix solid stack postgres database.yml"
 ```
 
-### 1.6 Local database setup
-
-```bash
-bin/rails db:create db:migrate
-bin/rails db:seed
-```
-
-### 1.7 Confirm it runs
-
-```bash
-bin/dev   # starts Puma + Tailwind watcher via Procfile.dev
-# visit http://localhost:3000
-```
-
----
 
 ## Phase 2 — Repo structure
 
