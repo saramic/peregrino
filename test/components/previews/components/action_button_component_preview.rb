@@ -1,4 +1,4 @@
-class ActionButtonComponentPreview < Lookbook::Preview
+class Components::ActionButtonComponentPreview < Lookbook::Preview
   layout "component_preview"
 
   # Click to see arrow become spinner — resets after 3 seconds

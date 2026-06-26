@@ -7,4 +7,6 @@
   --color-brand:   #C8952A;   /* amber gold — primary CTA */
   --color-prose:   #DDE1EE;   /* body text */
   --color-muted:   #6B7FA3;   /* secondary text, ghost borders */
+
+  --font-serif: Georgia, "Times New Roman", serif;
 }

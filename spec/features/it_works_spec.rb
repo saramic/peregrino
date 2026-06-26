@@ -2,17 +2,16 @@
 
 require "rails_helper"
 
-RSpec.feature "It works root rails demo page", :js do
-  let(:it_works_root) { Pages::ItWorksRoot.new }
+RSpec.feature "Fast start from landing page to live commentary", :js do
+  let(:start_screen) { Pages::StartScreen.new }
 
-  it "I have rails" do
+  it "Start speaking after location is granted" do
     When "user visits the app" do
-      it_works_root.load
+      start_screen.load
     end
 
-    Then "user sees they are on rails" do
-      expect(it_works_root.rails_version.text).to match(/8.1.3/)
-      expect(it_works_root.ruby_version.text).to match(/ruby 4.0.5/)
+    And "hits start" do
+      start_screen.start
     end
   end
 end
