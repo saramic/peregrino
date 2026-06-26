@@ -2,20 +2,17 @@
 
 require "rails_helper"
 
-RSpec.feature "It works root rails demo page", :js, type: :feature do
-  scenario "I have rails" do
+RSpec.feature "It works root rails demo page", :js do
+  let(:it_works_root) { Pages::ItWorksRoot.new }
+
+  it "I have rails" do
     When "user visits the app" do
-      visit test_root_rails_path
+      it_works_root.load
     end
 
     Then "user sees they are on rails" do
-      expect(
-        find("ul li", text: "Rails version")
-      ).to have_text "Rails version: 8.1.3"
-
-      expect(
-        find("ul li", text: "Ruby version")
-      ).to have_text "Ruby version: ruby 4.0.5"
+      expect(it_works_root.rails_version.text).to match(/8.1.3/)
+      expect(it_works_root.ruby_version.text).to match(/ruby 4.0.5/)
     end
   end
 end

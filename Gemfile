@@ -45,6 +45,7 @@ group :test do
   gem "rspec-example_steps", "~> 3.1"
   gem "selenium-webdriver", "~> 4.45"
   gem "rubocop-capybara", "~> 3.0"
+  gem "site_prism", "~> 6.0"
 end
 
 group :development, :test do

@@ -52,6 +52,15 @@ bundle add \
 - create a basic feature `spec/features/it_works_spec.rb`
 - based on the welcome route `get "test_root", to: "rails/welcome#index"`
 
+#### Site prism for page object abstraction
+
+```sh
+bundle add \
+  site_prism --group test
+```
+
+- add a first page object model `spec/support/pages/it_works_root.rb`
+
 # Tue 16 June 2026
 
 ## 1. Setup tools and build
