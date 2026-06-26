@@ -10,3 +10,5 @@ inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 AllCops:
   Exclude:
     - Brewfile
+
+plugins: rubocop-capybara

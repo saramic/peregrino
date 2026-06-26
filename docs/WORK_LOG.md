@@ -37,6 +37,21 @@ bin/dev   # starts Puma + Tailwind watcher via Procfile.dev
 # visit http://localhost:3000
 ```
 
+### 8 Add fearture specs
+
+```sh
+bundle add \
+  capybara \
+  rspec-example_steps \
+  selenium-webdriver \
+  rubocop-capybara
+```
+
+- setup capybara `spec/support/capybara.rb`
+- setup example_steps gem `spec/support/example_steps.rb`
+- create a basic feature `spec/features/it_works_spec.rb`
+- based on the welcome route `get "test_root", to: "rails/welcome#index"`
+
 # Tue 16 June 2026
 
 ## 1. Setup tools and build
