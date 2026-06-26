@@ -3,6 +3,7 @@
   <head>
     <title>Preview</title>
     <%= stylesheet_link_tag "application" %>
+    <%= javascript_include_tag "application", defer: true %>
   </head>
   <body class="bg-canvas min-h-screen flex items-center justify-center p-12">
     <%= yield %>

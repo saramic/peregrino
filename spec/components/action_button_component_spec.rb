@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe ButtonComponent, type: :component do
+RSpec.describe ActionButtonComponent, type: :component do
   it "renders a primary button" do
     render_inline(described_class.new(label: "Start"))
     expect(page).to have_button("Start")
