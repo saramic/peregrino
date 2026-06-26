@@ -61,6 +61,56 @@ bundle add \
 
 - add a first page object model `spec/support/pages/it_works_root.rb`
 
+### 9 Add Lookbook + ViewComponent
+
+```sh
+bundle add view_component lookbook --group "development, test"
+```
+
+Mount Lookbook in `config/routes.rb` (dev only):
+
+```ruby
+if Rails.env.development?
+  mount Lookbook::Engine, at: "/rails/lookbook"
+end
+```
+
+Create your first component:
+
+```sh
+bin/rails generate view_component:component Button label variant
+```
+
+This generates:
+- `app/components/button_component.rb`
+- `app/components/button_component.html.erb`
+- `spec/components/button_component_spec.rb`
+
+Note: `view_component:erb` only generates the template, not the class or spec.
+
+Create a preview (the Lookbook "story") at
+`test/components/previews/button_component_preview.rb`:
+
+```ruby
+class ButtonComponentPreview < Lookbook::Preview
+  def default
+    render ButtonComponent.new(label: "Start", variant: :primary)
+  end
+
+  def secondary
+    render ButtonComponent.new(label: "Skip", variant: :secondary)
+  end
+end
+```
+
+Visit `http://localhost:3000/rails/lookbook` to browse components.
+
+Run component specs:
+
+```sh
+bin/rspec spec/components
+```
+
 # Tue 16 June 2026
 
 ## 1. Setup tools and build

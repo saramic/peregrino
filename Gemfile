@@ -60,6 +60,10 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # design system
+  gem "view_component", "~> 4.12"
+  gem "lookbook", "~> 2.3"
 end
 
 group :development do
