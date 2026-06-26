@@ -9,3 +9,6 @@ application.register("hello", HelloController);
 
 import ActionButtonController from "./action_button_controller";
 application.register("action-button", ActionButtonController);
+
+import JourneyController from "./journey_controller";
+application.register("journey", JourneyController);

@@ -1,4 +1,6 @@
-<div class="min-h-screen bg-canvas flex flex-col items-center justify-center gap-4 px-8 py-12">
+<div class="min-h-screen bg-canvas flex flex-col items-center justify-center gap-4 px-8 py-12"
+     data-controller="journey"
+     data-action="action-button:activated->journey#locateUser">
 
   <%# Mountain logomark with wordmark at the waterline %>
   <svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"
@@ -135,4 +137,8 @@
   <div data-testid="start-button" class="mt-2">
     <%= render ActionButtonComponent.new(label: "Start") %>
   </div>
+
+  <%# Location result — hidden until journey controller populates it %>
+  <p data-journey-target="location"
+     class="hidden text-muted text-xs font-mono tracking-wider mt-2"></p>
 </div>
