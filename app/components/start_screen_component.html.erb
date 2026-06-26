@@ -134,27 +134,29 @@
   <p class="text-muted text-xs tracking-[0.25em] uppercase -mt-1">Every road is a pilgrimage</p>
 
   <%# CTA %>
-  <div data-journey-target="startControls" data-testid="start-button" class="mt-2">
+  <div data-journey-target="startControls" data-testid="start-button"
+       class="<%= 'hidden ' if start_controls_hidden? %>mt-2">
     <%= render ActionButtonComponent.new(label: "Start") %>
   </div>
 
   <%# Audio controls — shown once speaking begins %>
-  <div data-journey-target="audioControls" data-testid="audio-controls" class="hidden mt-2">
+  <div data-journey-target="audioControls" data-testid="audio-controls"
+       class="<%= 'hidden ' if audio_controls_hidden? %>mt-2">
     <div class="flex items-center gap-3">
 
       <%# Pause / Resume toggle %>
       <button data-action="journey#togglePause"
               class="inline-flex items-center gap-2 rounded-full border border-muted/50 px-5 py-2.5 text-sm text-muted transition-colors hover:border-brand hover:text-brand">
         <svg data-journey-target="pauseIcon" viewBox="0 0 14 14" fill="currentColor"
-             class="w-3.5 h-3.5" aria-hidden="true">
+             class="<%= 'hidden ' if pause_icon_hidden? %>w-3.5 h-3.5" aria-hidden="true">
           <rect x="2" y="1" width="3.5" height="12" rx="1"/>
           <rect x="8.5" y="1" width="3.5" height="12" rx="1"/>
         </svg>
         <svg data-journey-target="playIcon" viewBox="0 0 14 14" fill="currentColor"
-             class="hidden w-3.5 h-3.5" aria-hidden="true">
+             class="<%= 'hidden ' if play_icon_hidden? %>w-3.5 h-3.5" aria-hidden="true">
           <path d="M3 1.5l9 5-9 5z"/>
         </svg>
-        <span data-journey-target="pauseLabel">Pause</span>
+        <span data-journey-target="pauseLabel"><%= pause_label %></span>
       </button>
 
       <%# Restart — reloads back to the home screen %>
@@ -173,12 +175,12 @@
 
   <%# Journey progress — hidden until Start is tapped %>
   <ol data-journey-target="steps" data-testid="journey-steps"
-      class="hidden mt-6 w-full max-w-xs text-sm space-y-3">
+      class="<%= 'hidden ' if steps_hidden? %>mt-6 w-full max-w-xs text-sm space-y-3">
 
     <%# Step 1: Location %>
     <li class="flex items-center gap-3" data-testid="step-location">
       <span class="group relative w-5 h-5 shrink-0 text-muted"
-            data-journey-target="locationIcon" data-status="pending">
+            data-journey-target="locationIcon" data-status="<%= location_status %>">
         <svg class="absolute inset-0 w-5 h-5 group-data-[status=active]:hidden group-data-[status=done]:hidden"
              viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-opacity="0.4" stroke-width="1.5"/>
@@ -197,15 +199,17 @@
       <span>
         <span class="text-prose">Location</span>
         <span data-journey-target="locationDetail"
-              class="hidden block text-xs font-mono text-muted mt-0.5"></span>
+              class="<%= 'hidden ' if location_detail_hidden? %>block text-xs font-mono text-muted mt-0.5">
+          <%= @location_detail %>
+        </span>
       </span>
     </li>
 
     <%# Step 2: Fetching data %>
-    <li class="flex items-center gap-3 opacity-40 transition-opacity duration-500"
+    <li class="flex items-center gap-3 <%= 'opacity-40 ' if data_step_dim? %>transition-opacity duration-500"
         data-journey-target="dataStep" data-testid="step-data">
       <span class="group relative w-5 h-5 shrink-0 text-muted"
-            data-journey-target="dataIcon" data-status="pending">
+            data-journey-target="dataIcon" data-status="<%= data_status %>">
         <svg class="absolute inset-0 w-5 h-5 group-data-[status=active]:hidden group-data-[status=done]:hidden"
              viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-opacity="0.4" stroke-width="1.5"/>
@@ -224,15 +228,17 @@
       <span>
         <span class="text-prose">Fetching data</span>
         <span data-journey-target="dataDetail"
-              class="hidden block text-xs font-mono text-muted mt-0.5"></span>
+              class="<%= 'hidden ' if data_detail_hidden? %>block text-xs font-mono text-muted mt-0.5">
+          <%= @data_detail %>
+        </span>
       </span>
     </li>
 
     <%# Step 3: Preparing audio %>
-    <li class="flex items-center gap-3 opacity-40 transition-opacity duration-500"
+    <li class="flex items-center gap-3 <%= 'opacity-40 ' if audio_step_dim? %>transition-opacity duration-500"
         data-journey-target="audioStep" data-testid="step-audio">
       <span class="group relative w-5 h-5 shrink-0 text-muted"
-            data-journey-target="audioIcon" data-status="pending">
+            data-journey-target="audioIcon" data-status="<%= audio_status %>">
         <svg class="absolute inset-0 w-5 h-5 group-data-[status=active]:hidden group-data-[status=done]:hidden"
              viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <path d="M3 8h4l4-3v10l-4-3H3z" stroke="currentColor" stroke-opacity="0.4" stroke-width="1.3" stroke-linejoin="round"/>
