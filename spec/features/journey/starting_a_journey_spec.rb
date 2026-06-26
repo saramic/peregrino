@@ -16,6 +16,35 @@ RSpec.feature "Starting a journey", :js do
     end
   end
 
+  it "shows a progress list with step states after tapping Start" do
+    stub_ip_geolocation(lat: -33.8688, lng: 151.2093)
+
+    When "user visits the app" do
+      start_screen.load
+    end
+
+    And "the browser grants GPS location" do
+      grant_browser_geolocation(lat: -33.8688, lng: 151.2093)
+    end
+
+    And "user taps Start" do
+      start_screen.start
+    end
+
+    Then "the progress list appears" do
+      expect(page).to have_css("[data-testid='journey-steps']")
+    end
+
+    And "the location step is marked complete with coordinates" do
+      expect(page).to have_css("[data-journey-target='locationIcon'][data-status='done']")
+      expect(page).to have_text("-33.8688")
+    end
+
+    And "the data step becomes active" do
+      expect(page).to have_css("[data-journey-target='dataIcon'][data-status='active']")
+    end
+  end
+
   it "displays GPS coordinates when the user grants location" do
     When "user visits the app" do
       start_screen.load

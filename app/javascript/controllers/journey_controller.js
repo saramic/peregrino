@@ -3,9 +3,20 @@ import { Controller } from "@hotwired/stimulus";
 const MELBOURNE = { lat: -37.8136, lng: 144.9631 };
 
 export default class extends Controller {
-  static targets = ["location"];
+  static targets = [
+    "steps",
+    "locationIcon",
+    "locationDetail",
+    "dataStep",
+    "dataIcon",
+    "audioStep",
+    "audioIcon",
+  ];
 
   locateUser() {
+    this.stepsTarget.classList.remove("hidden");
+    this.#setStatus(this.locationIconTarget, "active");
+
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         ({ coords }) => this.#show(coords.latitude, coords.longitude, "GPS"),
@@ -35,7 +46,15 @@ export default class extends Controller {
   }
 
   #show(lat, lng, source) {
-    this.locationTarget.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}  ·  ${source}`;
-    this.locationTarget.classList.remove("hidden");
+    this.#setStatus(this.locationIconTarget, "done");
+    this.locationDetailTarget.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}  ·  ${source}`;
+    this.locationDetailTarget.classList.remove("hidden");
+
+    this.dataStepTarget.classList.remove("opacity-40");
+    this.#setStatus(this.dataIconTarget, "active");
+  }
+
+  #setStatus(el, status) {
+    el.dataset.status = status;
   }
 }
