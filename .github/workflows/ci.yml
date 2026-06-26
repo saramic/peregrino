@@ -43,6 +43,9 @@ jobs:
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build assets
+        run: pnpm run build && pnpm run build:css
+
       - name: Prepare test database
         run: |
           mise run install
