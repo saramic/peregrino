@@ -46,6 +46,7 @@ asset_path: /rails/public/assets
 
 builder:
   arch: amd64
+  remote: ssh://ubuntu@<%= ENV["PEREGRINO_IP"] %>
 
 aliases:
   console: app exec --interactive --reuse "bin/rails console"
