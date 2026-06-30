@@ -11,9 +11,14 @@ class Screens::StartScreenComponentPreview < Lookbook::Preview
     render StartScreenComponent.new(preview_state: :locating)
   end
 
-  # Location found — coordinates shown, fetching data spinner active
+  # Location found — coordinates shown, topic step spinner active
   def located
     render StartScreenComponent.new(preview_state: :located)
+  end
+
+  # Locality resolved — place name shown, fetching data spinner active
+  def proposed
+    render StartScreenComponent.new(preview_state: :proposed)
   end
 
   # Narrative fetched, speaking — audio controls replace Start button

@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 class StartScreenComponent < ViewComponent::Base
-  STATES = %i[initial locating located narrating paused].freeze
+  STATES = %i[initial locating located proposed narrating paused].freeze
 
-  def initialize(preview_state: :initial, location_detail: nil, data_detail: nil)
-    @preview_state  = preview_state.to_sym
+  def initialize(preview_state: :initial, location_detail: nil, topic_detail: nil, data_detail: nil)
+    @preview_state   = preview_state.to_sym
     @location_detail = location_detail || default_location_detail
+    @topic_detail    = topic_detail    || default_topic_detail
     @data_detail     = data_detail     || default_data_detail
   end
 
@@ -19,26 +20,36 @@ class StartScreenComponent < ViewComponent::Base
   # Location step
   def location_status
     case @preview_state
-    when :locating               then "active"
-    when :located, :narrating, :paused then "done"
-    else                              "pending"
+    when :locating                                    then "active"
+    when :located, :proposed, :narrating, :paused    then "done"
+    else                                                   "pending"
     end
   end
-  def location_detail_hidden? = !%i[located narrating paused].include?(@preview_state)
+  def location_detail_hidden? = !%i[located proposed narrating paused].include?(@preview_state)
+
+  # Topic step
+  def topic_step_dim?  = %i[initial locating].include?(@preview_state)
+  def topic_status
+    case @preview_state
+    when :located                          then "active"
+    when :proposed, :narrating, :paused   then "done"
+    else                                        "pending"
+    end
+  end
+  def topic_detail_hidden? = !%i[proposed narrating paused].include?(@preview_state)
 
   # Data step
-  def data_step_dim?  = %i[initial locating].include?(@preview_state)
+  def data_step_dim?  = %i[initial locating located].include?(@preview_state)
   def data_status
     case @preview_state
-    when :located                then "active"
-    when :narrating, :paused     then "done"
-    else                              "pending"
+    when :proposed                then "active"
+    when :narrating, :paused      then "done"
+    else                               "pending"
     end
   end
-  def data_detail_hidden? = !%i[narrating paused].include?(@preview_state)
 
   # Audio step
-  def audio_step_dim? = %i[initial locating located].include?(@preview_state)
+  def audio_step_dim? = %i[initial locating located proposed].include?(@preview_state)
   def audio_status    = %i[narrating paused].include?(@preview_state) ? "active" : "pending"
 
   # Pause / Resume button
@@ -50,10 +61,14 @@ class StartScreenComponent < ViewComponent::Base
   private
 
   def default_location_detail
-    %i[located narrating paused].include?(@preview_state) ? "-33.8688, 151.2093  ·  GPS" : nil
+    %i[located proposed narrating paused].include?(@preview_state) ? "-33.8688, 151.2093  ·  GPS" : nil
+  end
+
+  def default_topic_detail
+    %i[proposed narrating paused].include?(@preview_state) ? "Sydney" : nil
   end
 
   def default_data_detail
-    %i[narrating paused].include?(@preview_state) ? "Sydney" : nil
+    nil
   end
 end

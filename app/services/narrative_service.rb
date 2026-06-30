@@ -3,45 +3,33 @@
 require "net/http"
 
 class NarrativeService
-  NOMINATIM_BASE = "https://nominatim.openstreetmap.org"
   WIKIPEDIA_BASE = "https://en.wikipedia.org/api/rest_v1/page/summary"
   USER_AGENT     = "Peregrino/0.1 (github.com/saramic/peregrino)"
 
-  def self.call(lat:, lng:)
-    new(lat:, lng:).call
+  def self.call(lat:, lng:, place: nil, address: nil)
+    new(lat:, lng:, place:, address:).call
   end
 
-  def initialize(lat:, lng:)
-    @lat = lat
-    @lng = lng
+  def initialize(lat:, lng:, place: nil, address: nil)
+    @lat     = lat
+    @lng     = lng
+    @place   = place
+    @address = address
   end
 
   def call
-    place = reverse_geocode
-    return nil unless place
+    unless @place
+      locality = LocalityService.call(lat: @lat, lng: @lng)
+      return nil unless locality
+      @place   = locality[:place]
+      @address = locality[:address]
+    end
 
-    summary = wikipedia_summary(place)
-    { place:, summary: }
+    summary = wikipedia_summary(@place)
+    { place: @place, summary: }
   end
 
   private
-
-  def reverse_geocode
-    uri = URI("#{NOMINATIM_BASE}/reverse?lat=#{@lat}&lon=#{@lng}&format=json")
-    data = fetch_json(uri)
-    return nil unless data
-
-    @address = data["address"] || {}
-    @address["city"]          ||
-      @address["town"]        ||
-      @address["village"]     ||
-      @address["hamlet"]      ||
-      @address["locality"]    ||
-      @address["suburb"]      ||
-      @address["municipality"] ||
-      @address["county"]      ||
-      data["name"].presence
-  end
 
   def wikipedia_summary(place)
     place_candidates(place).each do |candidate|

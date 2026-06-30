@@ -7,9 +7,11 @@ export default class extends Controller {
     "steps",
     "locationIcon",
     "locationDetail",
+    "topicStep",
+    "topicIcon",
+    "topicDetail",
     "dataStep",
     "dataIcon",
-    "dataDetail",
     "audioStep",
     "audioIcon",
     "startControls",
@@ -78,22 +80,41 @@ export default class extends Controller {
     this.locationDetailTarget.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}  ·  ${source}`;
     this.locationDetailTarget.classList.remove("hidden");
 
-    this.dataStepTarget.classList.remove("opacity-40");
-    this.#setStatus(this.dataIconTarget, "active");
+    this.topicStepTarget.classList.remove("opacity-40");
+    this.#setStatus(this.topicIconTarget, "active");
 
-    this.#fetchNarrative(lat, lng);
+    this.#fetchLocality(lat, lng);
   }
 
-  async #fetchNarrative(lat, lng) {
+  async #fetchLocality(lat, lng) {
     try {
-      const res = await fetch(`/journey/narrate?lat=${lat}&lng=${lng}`);
+      const res = await fetch(`/journey/locality?lat=${lat}&lng=${lng}`);
       if (!res.ok) return;
       const data = await res.json();
       if (!data.place) return;
 
+      this.#setStatus(this.topicIconTarget, "done");
+      this.topicDetailTarget.textContent = data.place;
+      this.topicDetailTarget.classList.remove("hidden");
+
+      this.dataStepTarget.classList.remove("opacity-40");
+      this.#setStatus(this.dataIconTarget, "active");
+
+      this.#fetchNarrative(lat, lng, data.place);
+    } catch {
+      // leave topic step spinning — best effort
+    }
+  }
+
+  async #fetchNarrative(lat, lng, place) {
+    try {
+      const params = new URLSearchParams({ lat, lng });
+      if (place) params.set("place", place);
+      const res = await fetch(`/journey/narrate?${params}`);
+      if (!res.ok) return;
+      const data = await res.json();
+
       this.#setStatus(this.dataIconTarget, "done");
-      this.dataDetailTarget.textContent = data.place;
-      this.dataDetailTarget.classList.remove("hidden");
 
       this.audioStepTarget.classList.remove("opacity-40");
       this.#setStatus(this.audioIconTarget, "active");

@@ -18,6 +18,7 @@ RSpec.feature "Starting a journey", :js do
 
   it "shows a progress list with step states after tapping Start" do
     stub_ip_geolocation(lat: -33.8688, lng: 151.2093)
+    stub_locality(place: "Sydney")
 
     When "user visits the app" do
       start_screen.load
@@ -38,6 +39,11 @@ RSpec.feature "Starting a journey", :js do
     And "the location step is marked complete with coordinates" do
       expect(page).to have_css("[data-journey-target='locationIcon'][data-status='done']")
       expect(page).to have_text("-33.8688")
+    end
+
+    And "the topic step shows the resolved locality" do
+      expect(page).to have_css("[data-journey-target='topicIcon'][data-status='done']")
+      expect(page).to have_text("Sydney")
     end
 
     And "the data step becomes active" do
@@ -84,9 +90,13 @@ RSpec.feature "Starting a journey", :js do
       start_screen.start
     end
 
-    Then "the data step completes and shows the place name" do
-      expect(page).to have_css("[data-journey-target='dataIcon'][data-status='done']")
+    Then "the topic step completes and shows the place name" do
+      expect(page).to have_css("[data-journey-target='topicIcon'][data-status='done']")
       expect(page).to have_text("Sydney")
+    end
+
+    And "the data step completes" do
+      expect(page).to have_css("[data-journey-target='dataIcon'][data-status='done']")
     end
 
     And "the audio step becomes active" do

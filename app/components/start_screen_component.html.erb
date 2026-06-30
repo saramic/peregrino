@@ -205,7 +205,36 @@
       </span>
     </li>
 
-    <%# Step 2: Fetching data %>
+    <%# Step 2: Proposed topic %>
+    <li class="flex items-center gap-3 <%= 'opacity-40 ' if topic_step_dim? %>transition-opacity duration-500"
+        data-journey-target="topicStep" data-testid="step-topic">
+      <span class="group relative w-5 h-5 shrink-0 text-muted"
+            data-journey-target="topicIcon" data-status="<%= topic_status %>">
+        <svg class="absolute inset-0 w-5 h-5 group-data-[status=active]:hidden group-data-[status=done]:hidden"
+             viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-opacity="0.4" stroke-width="1.5"/>
+        </svg>
+        <svg class="absolute inset-0 w-5 h-5 hidden group-data-[status=active]:block animate-spin text-brand"
+             viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-opacity="0.25" stroke-width="1.5"/>
+          <path d="M17 10a7 7 0 0 0-7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <svg class="absolute inset-0 w-5 h-5 hidden group-data-[status=done]:block text-brand"
+             viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="10" cy="10" r="8" fill="currentColor" fill-opacity="0.15"/>
+          <path d="M6.5 10l2.5 2.5 4.5-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span>
+        <span class="text-prose">Topic</span>
+        <span data-journey-target="topicDetail"
+              class="<%= 'hidden ' if topic_detail_hidden? %>block text-xs font-mono text-muted mt-0.5">
+          <%= @topic_detail %>
+        </span>
+      </span>
+    </li>
+
+    <%# Step 3: Fetching data %>
     <li class="flex items-center gap-3 <%= 'opacity-40 ' if data_step_dim? %>transition-opacity duration-500"
         data-journey-target="dataStep" data-testid="step-data">
       <span class="group relative w-5 h-5 shrink-0 text-muted"
@@ -227,14 +256,10 @@
       </span>
       <span>
         <span class="text-prose">Fetching data</span>
-        <span data-journey-target="dataDetail"
-              class="<%= 'hidden ' if data_detail_hidden? %>block text-xs font-mono text-muted mt-0.5">
-          <%= @data_detail %>
-        </span>
       </span>
     </li>
 
-    <%# Step 3: Preparing audio %>
+    <%# Step 4: Preparing audio %>
     <li class="flex items-center gap-3 <%= 'opacity-40 ' if audio_step_dim? %>transition-opacity duration-500"
         data-journey-target="audioStep" data-testid="step-audio">
       <span class="group relative w-5 h-5 shrink-0 text-muted"

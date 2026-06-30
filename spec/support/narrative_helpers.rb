@@ -1,11 +1,21 @@
 # frozen_string_literal: true
 
 module NarrativeHelpers
+  def stub_locality(place:)
+    allow(LocalityService).to receive(:call).and_return({ place:, address: {} })
+  end
+
+  def stub_locality_unavailable
+    allow(LocalityService).to receive(:call).and_return(nil)
+  end
+
   def stub_narrative(place:, summary:)
+    stub_locality(place:)
     allow(NarrativeService).to receive(:call).and_return({ place:, summary: })
   end
 
   def stub_narrative_unavailable
+    stub_locality_unavailable
     allow(NarrativeService).to receive(:call).and_return(nil)
   end
 

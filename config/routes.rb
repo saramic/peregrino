@@ -19,5 +19,6 @@ Rails.application.routes.draw do
 
   root "journey#start"
   get "journey/locate",   to: "journey#locate"
+  get "journey/locality", to: "journey#locality"
   get "journey/narrate",  to: "journey#narrate"
 end
