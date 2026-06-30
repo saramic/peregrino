@@ -117,7 +117,7 @@ Write the spec first, watch it fail, implement until it passes.
    - drives: `hearing_location_narrative_spec.rb` — "fetches a narrative"
 
 5. **Wikipedia + Nominatim** — wire real APIs. `LocationNarrative.for(lat:,
-   lon:)` does reverse-geocode → place name → Wikipedia summary. Wrap in VCR
+lon:)` does reverse-geocode → place name → Wikipedia summary. Wrap in VCR
    cassettes for specs.
    - drives: `hearing_location_narrative_spec.rb` — VCR cassettes
 
@@ -149,6 +149,101 @@ Write the spec first, watch it fail, implement until it passes.
 
 ---
 
+## Phase 4 — The Discovery
+
+User moves through a landscape that has layers — maritime history, radio
+infrastructure, ecology. Phase 4 surfaces those layers as opt-in interest
+channels that announce themselves with a chime when the user is close enough to
+matter.
+
+**User journey**
+
+1. Before tapping Start, the user sees a row of small toggle chips:
+   **All · Ports · Radio Towers** (expandable in future: Heritage · Nature)
+2. Selection persists in `localStorage` and defaults to **All** on first visit
+3. After the main narrative plays, the app scans for POIs of the selected types
+   within a category-specific radius
+4. If a POI is found, a short chime plays — different tone per category — then
+   a one-sentence fact is spoken
+5. The chime + fact can interrupt a moving journey or follow a stationary
+   segment; it never blocks the main narrative
+
+**Interest categories and data sources**
+
+| Category     | Radius | Source                         | Notes                                             |
+| ------------ | ------ | ------------------------------ | ------------------------------------------------- |
+| Ports        | 20 km  | OpenStreetMap Overpass API     | `amenity=port` or `harbour=*` query, no DB needed |
+| Radio towers | 5 km   | ACMA RRL seed import (PostGIS) | One-time import of ACMA CSV; fast radius queries  |
+| General POI  | 10 km  | Wikipedia Geosearch API        | Catches lighthouses, heritage sites, landmarks    |
+
+NOTE: found these sources:
+- https://en.wikipedia.org/wiki/List_of_ports_in_Australia
+- eg https://www.acma.gov.au/register-radiocommunication-licences-rrl#/sites/10007619/map
+
+**Chime signatures (Web Audio API — no audio files)**
+
+| Category    | Tone                                          |
+| ----------- | --------------------------------------------- |
+| Port        | Three descending sine pulses (~foghorn shape) |
+| Radio tower | Brief AM carrier burst (noise + 1 kHz sine)   |
+| General POI | Single soft bell (sine with fast decay)       |
+
+**Feature specs**
+
+- `spec/features/journey/discovering_special_interests_spec.rb`
+  - `it "shows interest toggle chips before starting"`
+  - `it "persists interest selection across page loads"`
+  - `it "plays a port chime and fact when a port is within 20 km"`
+  - `it "plays a radio tower chime when a tower is within 5 km"`
+  - `it "skips POI announcement when no interest matches"`
+  - `it "skips POI announcement when All is deselected"`
+
+**Page objects**
+
+- `Pages::StartScreen` — extend with `interest_chips`, `toggle_interest(name)`
+- `Pages::Journey` — extend with `has_chime_played?`, `poi_announcement_text`
+
+---
+
+## Phase 4 — Build order
+
+11. **Interest chip UI** — toggle chips above Start button; read/write
+    `localStorage`; pass selected interests as query params on every narrate and
+    POI request.
+    - drives: `discovering_special_interests_spec.rb` — "shows chips",
+      "persists selection"
+
+12. **POI scan endpoint** — `GET /journey/nearby_pois?lat=&lng=&interests[]=`
+    returns an array of `{ category:, name:, distance_m:, fact: }`. Stub in
+    specs; real implementation wired in next step.
+    - drives: `discovering_special_interests_spec.rb` — "skips when no match"
+
+13. **Wikipedia Geosearch layer** — query
+    `en.wikipedia.org/w/api.php?action=query&list=geosearch` within radius,
+    filter results by category keyword, return top hit with one-sentence extract.
+    - drives: `discovering_special_interests_spec.rb` — general POI assertion
+
+14. **Overpass ports layer** — query Overpass API for `amenity=port` within 20
+    km. Parse result, return nearest. No DB required.
+    - drives: `discovering_special_interests_spec.rb` — "port chime and fact"
+
+15. **ACMA tower seed import** — rake task downloads ACMA RRL CSV, upserts into
+    `points_of_interest` table (`category`, `name`, `lat`, `lng`). PostGIS
+    `ST_DWithin` for radius queries. Migration adds PostGIS extension.
+    - drives: `discovering_special_interests_spec.rb` — "radio tower chime"
+
+16. **Web Audio chimes** — `ChimeController` (Stimulus) exposes
+    `play(category)`; generates tone programmatically via `AudioContext`. Spec
+    stubs `AudioContext` and asserts correct frequency/duration called.
+    - drives: all chime assertions
+
+17. **POI narration queue** — after main narrative ends, JS calls
+    `/journey/nearby_pois`, plays chime for first result, speaks the fact,
+    repeats for next result. Empty result → silence.
+    - drives: full end-to-end flow in `discovering_special_interests_spec.rb`
+
+---
+
 ## Technical decisions
 
 | Concern                | PoC choice                     | Why                                                                          |
@@ -159,6 +254,11 @@ Write the spec first, watch it fail, implement until it passes.
 | HTTP streaming         | Plain JSON POST/response       | SpeechSynthesis needs full text anyway; add SSE when switching to server TTS |
 | External HTTP in specs | VCR cassettes                  | Record once, replay forever                                                  |
 | Geolocation in specs   | `page.execute_script` override | Override `navigator.geolocation` before page loads, no browser flags needed  |
+| POI general layer      | Wikipedia Geosearch API        | Free, global, already integrated; catches ports/towers that have articles    |
+| POI ports layer        | OpenStreetMap Overpass API     | `amenity=port` query, no DB, works globally                                  |
+| POI towers layer       | ACMA RRL CSV seed → PostGIS    | One-time import; fast ST_DWithin radius queries; Australia-specific          |
+| Interest persistence   | `localStorage`                 | No auth required; resets cleanly on clear; survives page reload              |
+| Chime audio            | Web Audio API (synthesised)    | No audio files to serve; works offline; unique tone per category             |
 
 ---
 
