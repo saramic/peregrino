@@ -7,6 +7,7 @@ export default class extends Controller {
     "steps",
     "locationIcon",
     "locationDetail",
+    "locationRetry",
     "topicStep",
     "topicIcon",
     "topicDetail",
@@ -34,7 +35,7 @@ export default class extends Controller {
       navigator.geolocation.getCurrentPosition(
         ({ coords }) => this.#show(coords.latitude, coords.longitude, "GPS"),
         () => this.#tryIpGeolocation(),
-        { timeout: 8000 },
+        { timeout: 20000 },
       );
     } else {
       this.#tryIpGeolocation();
@@ -79,10 +80,43 @@ export default class extends Controller {
     this.#show(MELBOURNE.lat, MELBOURNE.lng, "Melbourne default");
   }
 
+  requestLocation() {
+    window.speechSynthesis?.cancel();
+    window.speechSynthesis?.speak(new SpeechSynthesisUtterance(""));
+
+    this.#setStatus(this.locationIconTarget, "active");
+    this.locationDetailTarget.classList.add("hidden");
+    this.locationRetryTarget.classList.add("hidden");
+
+    this.topicStepTarget.classList.add("opacity-40");
+    this.topicDetailTarget.classList.add("hidden");
+    this.#setStatus(this.topicIconTarget, "pending");
+
+    this.dataStepTarget.classList.add("opacity-40");
+    this.#setStatus(this.dataIconTarget, "pending");
+
+    this.audioStepTarget.classList.add("opacity-40");
+    this.#setStatus(this.audioIconTarget, "pending");
+
+    this.startControlsTarget.classList.remove("hidden");
+    this.audioControlsTarget.classList.add("hidden");
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => this.#show(coords.latitude, coords.longitude, "GPS"),
+        () => this.#tryIpGeolocation(),
+        { timeout: 20000 },
+      );
+    } else {
+      this.#tryIpGeolocation();
+    }
+  }
+
   #show(lat, lng, source) {
     this.#setStatus(this.locationIconTarget, "done");
     this.locationDetailTarget.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}  ·  ${source}`;
     this.locationDetailTarget.classList.remove("hidden");
+    this.locationRetryTarget.classList.remove("hidden");
 
     this.topicStepTarget.classList.remove("opacity-40");
     this.#setStatus(this.topicIconTarget, "active");

@@ -3,14 +3,16 @@
 require "net/http"
 
 class IpGeolocationService
-  URL          = URI("https://ipapi.co/json/")
+  BASE_URL     = "https://ipapi.co"
   OPEN_TIMEOUT = 3
   READ_TIMEOUT = 5
 
-  def self.call
-    req = Net::HTTP::Get.new(URL)
+  def self.call(ip: nil)
+    path = ip.present? ? "/#{ip}/json/" : "/json/"
+    uri = URI("#{BASE_URL}#{path}")
+    req = Net::HTTP::Get.new(uri)
     req["Accept"] = "application/json"
-    res = Net::HTTP.start(URL.host, URL.port,
+    res = Net::HTTP.start(uri.host, uri.port,
       use_ssl: true,
       open_timeout: OPEN_TIMEOUT,
       read_timeout: READ_TIMEOUT

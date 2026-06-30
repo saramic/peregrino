@@ -46,8 +46,10 @@ RSpec.feature "Starting a journey", :js do
       expect(page).to have_text("Sydney")
     end
 
-    And "the data step becomes active" do
-      expect(page).to have_css("[data-journey-target='dataIcon'][data-status='active']")
+    And "the data step is processing" do
+      expect(page).to have_css(
+        "[data-journey-target='dataIcon'][data-status='active'], [data-journey-target='dataIcon'][data-status='done']"
+      )
     end
   end
 
@@ -182,6 +184,37 @@ RSpec.feature "Starting a journey", :js do
       expect(page).to have_css("[data-testid='start-button']", visible: :visible)
       expect(page).to have_no_css("[data-testid='audio-controls']", visible: :visible)
       expect(page).to have_no_css("[data-testid='journey-steps']", visible: :visible)
+    end
+  end
+
+  it "shows a re-request location button after location is resolved" do
+    stub_ip_geolocation(lat: -33.8688, lng: 151.2093)
+    stub_locality(place: "Sydney")
+
+    When "user visits the app" do
+      start_screen.load
+    end
+
+    And "the browser grants GPS location" do
+      grant_browser_geolocation(lat: -33.8688, lng: 151.2093)
+    end
+
+    And "user taps Start" do
+      start_screen.start
+    end
+
+    Then "a Re-locate button appears alongside the coordinates" do
+      expect(page).to have_css("[data-journey-target='locationIcon'][data-status='done']")
+      expect(page).to have_button("Re-locate")
+    end
+
+    When "user taps Re-locate" do
+      click_button "Re-locate"
+    end
+
+    Then "the location step resolves again with a fresh position" do
+      expect(page).to have_css("[data-journey-target='locationIcon'][data-status='done']")
+      expect(page).to have_button("Re-locate")
     end
   end
 

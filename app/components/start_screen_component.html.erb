@@ -196,13 +196,19 @@
           <path d="M6.5 10l2.5 2.5 4.5-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </span>
-      <span>
+      <span class="flex-1">
         <span class="text-prose">Location</span>
         <span data-journey-target="locationDetail"
               class="<%= 'hidden ' if location_detail_hidden? %>block text-xs font-mono text-muted mt-0.5">
           <%= @location_detail %>
         </span>
       </span>
+      <button data-journey-target="locationRetry"
+              data-action="journey#requestLocation"
+              data-testid="retry-location"
+              class="<%= 'hidden ' if location_retry_hidden? %>shrink-0 text-xs text-muted underline underline-offset-2 hover:text-brand transition-colors">
+        Re-locate
+      </button>
     </li>
 
     <%# Step 2: Proposed topic %>

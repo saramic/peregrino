@@ -26,6 +26,7 @@ class StartScreenComponent < ViewComponent::Base
     end
   end
   def location_detail_hidden? = !%i[located proposed narrating paused].include?(@preview_state)
+  def location_retry_hidden? = !%i[located proposed narrating paused].include?(@preview_state)
 
   # Topic step
   def topic_step_dim?  = %i[initial locating].include?(@preview_state)

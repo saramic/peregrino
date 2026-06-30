@@ -5,7 +5,7 @@ class JourneyController < ApplicationController
   end
 
   def locate
-    location = IpGeolocationService.call
+    location = IpGeolocationService.call(ip: request.remote_ip)
     if location
       render json: location
     else
