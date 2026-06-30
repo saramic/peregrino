@@ -42,6 +42,59 @@
   docker buildx rm kamal-local-docker-container
   kamal deploy
   ```
+- also had to downgrade ruby from 4 -> 3 for kamal and docker build to avoid
+  io-console Ruby 4.0 incompatibility"
+
+- seems we can update the DOker file to node 24 and pnpm 10 usage
+
+- also have to be able to run docker on the DreamCompute machine allow the
+  `ubuntu` user to talk to the Docker socket.
+
+  ```sh
+  ssh -i $PEREGRINO_PEM_LOCATION ubuntu@$PEREGRINO_IP
+  sudo usermod -aG docker ubuntu
+  logout
+  ```
+
+- as initial `kamal setup` failed due to not being able to build the docker
+  file, maybe it failed to start the DB?
+
+  ```sh
+  # check the details of the DB accessory
+
+  kamal accessory details db
+  INFO [47084802] Running docker ps --filter label=service=peregrino-db on ...
+  INFO [47084802] Finished in 4.798 seconds with exit status 0 (successful).
+  Accessory db Host: ...
+  CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+  # boot it
+  kamal accessory boot db
+  INFO [5c8c02e2] Running /usr/bin/env mkdir -p .kamal on ...
+  INFO [5c8c02e2] Finished in 3.316 seconds with exit status 0 (successful).
+  Acquiring the deploy lock...
+  ...
+  INFO [74d5da97] Running docker run --name peregrino-db --detach --restart
+    unless-stopped --network kamal --log-opt max-size="10m" --publish
+    127.0.0.1:5432:5432 --env KAMAL_HOST="XXX.YYY.AAA.BBB" --env
+    POSTGRES_DB="peregrino_production" --env POSTGRES_USER="postgres"
+    --env-file .kamal/apps/peregrino/env/accessories/db.env --volume
+    $PWD/peregrino-db/data:/var/lib/postgresql/data --label
+    service="peregrino-db" postgres:17 on XXX.YYY.AAA.BBB
+  ...
+  INFO [74d5da97] Finished in 26.976 seconds with exit status 0 (successful).
+  Releasing the deploy lock...
+
+  # check it
+  kamal accessory details db
+  INFO [2b3e1f73] Running docker ps --filter label=service=peregrino-db on ...
+  INFO [2b3e1f73] Finished in 3.657 seconds with exit status 0 (successful).
+  Accessory db Host: XXX.YYY.AAA.BBB
+  CONTAINER ID   IMAGE         COMMAND                  CREATED
+  ede8116d5d55   postgres:17   "docker-entrypoint.s…"   7 seconds ago
+    STATUS         PORTS                      NAMES
+    Up 6 seconds   127.0.0.1:5432->5432/tcp   peregrino-db
+  ```
 
 # Fri 26 June 2026
 

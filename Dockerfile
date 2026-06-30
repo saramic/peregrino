@@ -36,13 +36,12 @@ RUN apt-get update -qq && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install JavaScript dependencies
-ARG NODE_VERSION=20.9.0
+ARG NODE_VERSION=24
 ARG PNPM_VERSION=10
-ENV PATH=/usr/local/node/bin:$PATH
-RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
-    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
-    npm install -g pnpm@$PNPM_VERSION && \
-    rm -rf /tmp/node-build-master
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives && \
+    npm install -g pnpm@$PNPM_VERSION
 
 # Install application gems
 COPY vendor/* ./vendor/

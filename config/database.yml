@@ -87,9 +87,11 @@ test:
 production:
   primary: &primary_production
     <<: *default
+    host: peregrino-db
+    port: 5432
+    username: postgres
+    password: <%= ENV["POSTGRES_PASSWORD"] %>
     database: peregrino_production
-    username: peregrino
-    password: <%= ENV["PEREGRINO_DATABASE_PASSWORD"] %>
   cache:
     <<: *primary_production
     database: peregrino_production_cache
