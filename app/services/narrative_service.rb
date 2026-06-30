@@ -37,10 +37,15 @@ class NarrativeService
     place_candidates(place).each do |candidate|
       encoded = URI.encode_www_form_component(candidate)
       data = fetch_json(URI("#{WIKIPEDIA_BASE}/#{encoded}"))
-      extract = data&.fetch("extract", nil)
+      extract = first_paragraph(data&.fetch("extract", nil))
       return extract if extract.present?
     end
     nil
+  end
+
+  def first_paragraph(text)
+    return nil if text.blank?
+    text.split("\n").first&.strip.presence
   end
 
   def place_candidates(place)

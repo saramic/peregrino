@@ -26,6 +26,9 @@ export default class extends Controller {
   locateUser() {
     this.stepsTarget.classList.remove("hidden");
     this.#setStatus(this.locationIconTarget, "active");
+    // Unlock iOS Speech Synthesis while we're still inside the user gesture.
+    window.speechSynthesis?.cancel();
+    window.speechSynthesis?.speak(new SpeechSynthesisUtterance(""));
 
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
