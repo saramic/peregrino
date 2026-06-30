@@ -1,5 +1,48 @@
 # WORK LOG
 
+# Tue 30 June 2026
+
+## Kamal deploy
+
+- started a VPC on DreamCompute (had an account on DreamHost)
+- install buildx
+
+  ```sh
+  mise runs setup
+  # which runs
+  # brew install docker-buildx
+
+  # and link it
+  mkdir -p ~/.docker/cli-plugins
+  ln -sf $(brew --prefix)/opt/docker-buildx/bin/docker-buildx ~/.docker/cli-plugins/docker-buildx
+  ```
+
+- check buildx is installed
+  ```sh
+  docker buildx version
+  ```
+
+- make sure colima or docker is running
+  ```sh
+  colima start
+  ```
+
+- once off
+  ```sh
+  kamal setup
+  ```
+
+- deploy
+  ```sh
+  kamal deploy
+  ```
+
+- if you need to force rebuild local image, say switching from `yarn` to `pnpm`
+  ```sh
+  docker buildx rm kamal-local-docker-container
+  kamal deploy
+  ```
+
 # Fri 26 June 2026
 
 ### 6 Local database setup
