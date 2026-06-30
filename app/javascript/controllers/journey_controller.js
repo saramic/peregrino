@@ -31,6 +31,7 @@ export default class extends Controller {
       navigator.geolocation.getCurrentPosition(
         ({ coords }) => this.#show(coords.latitude, coords.longitude, "GPS"),
         () => this.#tryIpGeolocation(),
+        { timeout: 8000 },
       );
     } else {
       this.#tryIpGeolocation();
@@ -59,7 +60,7 @@ export default class extends Controller {
 
   async #tryIpGeolocation() {
     try {
-      const res = await fetch("/journey/locate");
+      const res = await this.#timedFetch("/journey/locate", 5000);
       const data = await res.json();
       if (data.lat && data.lng) {
         this.#show(data.lat, data.lng, "IP");
@@ -88,10 +89,13 @@ export default class extends Controller {
 
   async #fetchLocality(lat, lng) {
     try {
-      const res = await fetch(`/journey/locality?lat=${lat}&lng=${lng}`);
-      if (!res.ok) return;
+      const res = await this.#timedFetch(
+        `/journey/locality?lat=${lat}&lng=${lng}`,
+        10000,
+      );
+      if (!res.ok) throw new Error("locality unavailable");
       const data = await res.json();
-      if (!data.place) return;
+      if (!data.place) throw new Error("no place");
 
       this.#setStatus(this.topicIconTarget, "done");
       this.topicDetailTarget.textContent = data.place;
@@ -102,7 +106,10 @@ export default class extends Controller {
 
       this.#fetchNarrative(lat, lng, data.place);
     } catch {
-      // leave topic step spinning — best effort
+      // locality timed out or failed — skip topic, attempt narrate anyway
+      this.dataStepTarget.classList.remove("opacity-40");
+      this.#setStatus(this.dataIconTarget, "active");
+      this.#fetchNarrative(lat, lng, null);
     }
   }
 
@@ -110,7 +117,7 @@ export default class extends Controller {
     try {
       const params = new URLSearchParams({ lat, lng });
       if (place) params.set("place", place);
-      const res = await fetch(`/journey/narrate?${params}`);
+      const res = await this.#timedFetch(`/journey/narrate?${params}`, 12000);
       if (!res.ok) return;
       const data = await res.json();
 
@@ -121,8 +128,14 @@ export default class extends Controller {
 
       if (data.summary) this.#speak(data.summary);
     } catch {
-      // leave data step spinning — best effort
+      // narrate timed out or failed — leave data step, user can restart
     }
+  }
+
+  #timedFetch(url, ms) {
+    const ctrl = new AbortController();
+    const id = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(id));
   }
 
   #speak(text) {

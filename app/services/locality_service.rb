@@ -5,6 +5,8 @@ require "net/http"
 class LocalityService
   NOMINATIM_BASE = "https://nominatim.openstreetmap.org"
   USER_AGENT     = "Peregrino/0.1 (github.com/saramic/peregrino)"
+  OPEN_TIMEOUT   = 3
+  READ_TIMEOUT   = 8
 
   def self.call(lat:, lng:)
     new(lat:, lng:).call
@@ -40,7 +42,11 @@ class LocalityService
     req = Net::HTTP::Get.new(uri)
     req["User-Agent"] = USER_AGENT
     req["Accept"]     = "application/json"
-    res = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") { |h| h.request(req) }
+    res = Net::HTTP.start(uri.host, uri.port,
+      use_ssl: uri.scheme == "https",
+      open_timeout: OPEN_TIMEOUT,
+      read_timeout: READ_TIMEOUT
+    ) { |h| h.request(req) }
     return nil unless res.is_a?(Net::HTTPSuccess)
     JSON.parse(res.body)
   rescue
