@@ -98,6 +98,27 @@
 
 - another issue with ruby and big-decimal - downgrading to ruby 3.4
 
+- switch to building on the system via SSH
+  ```sh
+  ssh-add ~/location/of/pem/file
+
+  # OR
+  # Persistent fix — add to ~/.ssh/config:
+  Host XXX.YYY.AAA.BBB
+    User ubuntu
+    IdentityFile ~/location/of/pem/file
+
+  # and deploy
+  kamal deploy
+  ```
+
+- to log
+  ```sh
+  kamal app logs -f #tailing
+  # or
+  kamal app logs
+  ```
+
 # Fri 26 June 2026
 
 ### 6 Local database setup

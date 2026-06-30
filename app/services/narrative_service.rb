@@ -31,20 +31,38 @@ class NarrativeService
     data = fetch_json(uri)
     return nil unless data
 
-    addr = data["address"] || {}
-    addr["city"]         ||
-      addr["town"]       ||
-      addr["village"]    ||
-      addr["suburb"]     ||
-      addr["municipality"] ||
-      addr["county"]     ||
-      data["name"]
+    @address = data["address"] || {}
+    @address["city"]          ||
+      @address["town"]        ||
+      @address["village"]     ||
+      @address["hamlet"]      ||
+      @address["locality"]    ||
+      @address["suburb"]      ||
+      @address["municipality"] ||
+      @address["county"]      ||
+      data["name"].presence
   end
 
   def wikipedia_summary(place)
-    encoded = URI.encode_www_form_component(place)
-    data = fetch_json(URI("#{WIKIPEDIA_BASE}/#{encoded}"))
-    data&.fetch("extract", nil)
+    place_candidates(place).each do |candidate|
+      encoded = URI.encode_www_form_component(candidate)
+      data = fetch_json(URI("#{WIKIPEDIA_BASE}/#{encoded}"))
+      extract = data&.fetch("extract", nil)
+      return extract if extract.present?
+    end
+    nil
+  end
+
+  def place_candidates(place)
+    addr = @address || {}
+    [
+      place,
+      addr["suburb"],
+      addr["municipality"],
+      addr["county"],
+      addr["state_district"],
+      addr["state"]
+    ].compact.uniq
   end
 
   def fetch_json(uri)
