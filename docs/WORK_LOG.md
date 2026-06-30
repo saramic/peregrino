@@ -96,6 +96,8 @@
     Up 6 seconds   127.0.0.1:5432->5432/tcp   peregrino-db
   ```
 
+- another issue with ruby and big-decimal - downgrading to ruby 3.4
+
 # Fri 26 June 2026
 
 ### 6 Local database setup
